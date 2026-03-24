@@ -1,26 +1,24 @@
 # Job Portal System
 
 ## Current State
-New project. No existing application code.
+Full-stack job portal with Motoko backend and React frontend. Features: login via Internet Identity, employer dashboard (post/edit/delete jobs, review applicants), job seeker dashboard (browse & apply), job detail page with apply dialog, profile setup page.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Public homepage with hero section, job search, featured listings, industry categories
-- Job seeker flow: register/login, browse jobs, apply to jobs, track application status
-- Employer flow: register/login, post jobs, manage job listings, view and manage applicants
-- Admin-style role separation (job seeker vs employer) using authorization
-- Job listings with title, company, location, description, salary range, category
-- Job applications with cover letter, status tracking (pending, reviewed, accepted, rejected)
-- Industry/category filtering and keyword search
+- Error handling in ProfileSetupPage handleSubmit (try-catch)
+- isError handling in AuthPage for profile query failures
+- Graceful fallback in useCallerProfile when backend call fails
 
 ### Modify
-- N/A (new project)
+- AuthPage.tsx: treat undefined profile (error/unloaded state) properly — only navigate when profile data is definitively loaded or confirmed errored; if errored treat as no profile and redirect to profile-setup
+- ProfileSetupPage.tsx: wrap mutateAsync calls in try-catch and show toast.error on failure
+- useQueries.ts: useCallerProfile should catch errors and return null so the UI can react gracefully
 
 ### Remove
-- N/A (new project)
+- Nothing removed
 
 ## Implementation Plan
-1. Backend: Authorization with two roles (job_seeker, employer). Stable storage for jobs, applications, user profiles.
-2. Backend APIs: postJob, getJobs, searchJobs, applyToJob, getApplications, updateApplicationStatus, getUserProfile, updateUserProfile
-3. Frontend: Homepage with hero + search + featured jobs. Auth pages (login/register with role selection). Job seeker dashboard (browse, apply, my applications). Employer dashboard (post job, my listings, view applicants).
+1. Wrap `useCallerProfile` queryFn in try-catch, return null on error
+2. In AuthPage.tsx, read isError from useCallerProfile; if isError treat same as null (redirect to profile-setup)
+3. In ProfileSetupPage.tsx, wrap both mutateAsync calls in try-catch with toast.error

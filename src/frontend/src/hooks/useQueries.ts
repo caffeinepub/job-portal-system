@@ -4,6 +4,7 @@ import {
   ApplicationStatus,
   type JobApplication,
   type JobListing,
+  JobType,
   type UserProfile,
   UserRole,
 } from "../backend.d";
@@ -39,7 +40,11 @@ export function useCallerProfile() {
     queryKey: ["profile"],
     queryFn: async () => {
       if (!actor) return null;
-      return actor.getCallerUserProfile();
+      try {
+        return await actor.getCallerUserProfile();
+      } catch {
+        return null;
+      }
     },
     enabled: !!actor && !isFetching,
   });
@@ -80,6 +85,7 @@ export function usePostJob() {
       description: string;
       salary: string;
       category: string;
+      jobType: JobType;
     }) => {
       if (!actor) throw new Error("Not connected");
       return actor.postJob(
@@ -89,6 +95,7 @@ export function usePostJob() {
         data.description,
         data.salary,
         data.category,
+        data.jobType,
       );
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["jobs"] }),
@@ -107,6 +114,7 @@ export function useUpdateJob() {
       description: string;
       salary: string;
       category: string;
+      jobType: JobType;
     }) => {
       if (!actor) throw new Error("Not connected");
       return actor.updateJob(
@@ -117,6 +125,7 @@ export function useUpdateJob() {
         data.description,
         data.salary,
         data.category,
+        data.jobType,
       );
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["jobs"] }),
@@ -209,5 +218,5 @@ export function useCreateEmployerProfile() {
   });
 }
 
-export { ApplicationStatus, UserRole };
+export { ApplicationStatus, JobType, UserRole };
 export type { JobListing, JobApplication, UserProfile };

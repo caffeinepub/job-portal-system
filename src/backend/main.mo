@@ -6,10 +6,11 @@ import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
 import Iter "mo:core/Iter";
 import Nat "mo:core/Nat";
-import Array "mo:core/Array";
 import Time "mo:core/Time";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+
+
 
 actor {
   // Authorization
@@ -66,6 +67,40 @@ actor {
     };
   };
 
+  type JobType = {
+    #full_time;
+    #part_time;
+    #contract;
+    #remote;
+    #internship;
+    #freelance;
+  };
+
+  module JobType {
+    public func fromText(text : Text) : ?JobType {
+      switch (text.toLower()) {
+        case ("full-time") { ?#full_time };
+        case ("part-time") { ?#part_time };
+        case ("contract") { ?#contract };
+        case ("remote") { ?#remote };
+        case ("internship") { ?#internship };
+        case ("freelance") { ?#freelance };
+        case (_) { null };
+      };
+    };
+
+    public func toText(jobType : JobType) : Text {
+      switch (jobType) {
+        case (#full_time) { "Full-time" };
+        case (#part_time) { "Part-time" };
+        case (#contract) { "Contract" };
+        case (#remote) { "Remote" };
+        case (#internship) { "Internship" };
+        case (#freelance) { "Freelance" };
+      };
+    };
+  };
+
   type JobListing = {
     id : Nat;
     title : Text;
@@ -74,8 +109,30 @@ actor {
     description : Text;
     salary : Text;
     category : Text;
+    jobType : JobType;
     postedBy : Principal;
     postedAt : Time.Time;
+  };
+
+  module JobListing {
+    public func compare(job1 : JobListing, job2 : JobListing) : Order.Order {
+      Nat.compare(job1.id, job2.id);
+    };
+
+    public func fromOldJobListing(old : OldJobListing) : JobListing {
+      {
+        id = old.id;
+        title = old.title;
+        company = old.company;
+        location = old.location;
+        description = old.description;
+        salary = old.salary;
+        category = old.category;
+        jobType = #full_time;
+        postedBy = old.postedBy;
+        postedAt = old.postedAt;
+      };
+    };
   };
 
   type ApplicationStatus = {
@@ -150,7 +207,7 @@ actor {
   };
 
   // Job Management
-  public shared ({ caller }) func postJob(title : Text, company : Text, location : Text, description : Text, salary : Text, category : Text) : async Nat {
+  public shared ({ caller }) func postJob(title : Text, company : Text, location : Text, description : Text, salary : Text, category : Text, jobType : JobType) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can post jobs");
     };
@@ -169,6 +226,7 @@ actor {
               description;
               salary;
               category;
+              jobType;
               postedBy = caller;
               postedAt = Time.now();
             };
@@ -179,6 +237,10 @@ actor {
         };
       };
     };
+  };
+
+  public query func getJobsByJobType(jobType : JobType) : async [JobListing] {
+    jobs.values().toArray().filter(func(j) { j.jobType == jobType });
   };
 
   public query func getJobsByTitle(title : Text) : async [JobListing] {
@@ -201,20 +263,16 @@ actor {
     jobs.values().toArray().sort();
   };
 
-  module JobListing {
-    public func compare(job1 : JobListing, job2 : JobListing) : Order.Order {
-      Nat.compare(job1.id, job2.id);
-    };
-  };
-
-  public shared ({ caller }) func updateJob(jobId : Nat, title : Text, company : Text, location : Text, description : Text, salary : Text, category : Text) : async () {
+  public shared ({ caller }) func updateJob(jobId : Nat, title : Text, company : Text, location : Text, description : Text, salary : Text, category : Text, jobType : JobType) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update jobs");
     };
     switch (jobs.get(jobId)) {
       case (null) { Runtime.trap("Job not found") };
       case (?job) {
-        if (job.postedBy != caller) { Runtime.trap("Only the job owner can update this job") };
+        if (job.postedBy != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Only the job owner can update this job");
+        };
         let updatedJob : JobListing = {
           job with
           title;
@@ -223,6 +281,7 @@ actor {
           description;
           salary;
           category;
+          jobType;
         };
         jobs.add(jobId, updatedJob);
       };
@@ -236,7 +295,9 @@ actor {
     switch (jobs.get(jobId)) {
       case (null) { Runtime.trap("Job not found") };
       case (?job) {
-        if (job.postedBy != caller) { Runtime.trap("Only the job owner can delete this job") };
+        if (job.postedBy != caller and not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Only the job owner can delete this job");
+        };
         jobs.remove(jobId);
       };
     };
@@ -285,7 +346,7 @@ actor {
     switch (jobs.get(jobId)) {
       case (null) { Runtime.trap("Job not found") };
       case (?job) {
-        if (job.postedBy != caller) {
+        if (job.postedBy != caller and not AccessControl.isAdmin(accessControlState, caller)) {
           Runtime.trap("Only the job owner can view applications for this job");
         };
         applications.values().toArray().filter(func(a) { a.jobId == jobId });
@@ -313,7 +374,7 @@ actor {
         switch (jobs.get(application.jobId)) {
           case (null) { Runtime.trap("Job not found") };
           case (?job) {
-            if (job.postedBy != caller) {
+            if (job.postedBy != caller and not AccessControl.isAdmin(accessControlState, caller)) {
               Runtime.trap("Only the job owner can update this application status");
             };
             let updatedApplication = { application with status };
@@ -344,5 +405,18 @@ actor {
         application.status;
       };
     };
+  };
+
+  // Migration Support
+  type OldJobListing = {
+    id : Nat;
+    title : Text;
+    company : Text;
+    location : Text;
+    description : Text;
+    salary : Text;
+    category : Text;
+    postedBy : Principal;
+    postedAt : Time.Time;
   };
 };

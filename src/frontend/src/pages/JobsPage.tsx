@@ -9,9 +9,10 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { Layers, MapPin, Search, X } from "lucide-react";
+import { Briefcase, Layers, MapPin, Search, X } from "lucide-react";
 import { motion } from "motion/react";
 import { useMemo, useState } from "react";
+import { JobType } from "../backend.d";
 import JobCard from "../components/JobCard";
 import { useAllJobs } from "../hooks/useQueries";
 
@@ -25,6 +26,16 @@ const CATEGORIES = [
   "Engineering",
 ];
 
+const JOB_TYPES: { value: string; label: string }[] = [
+  { value: "All", label: "All Types" },
+  { value: JobType.full_time, label: "Full-time" },
+  { value: JobType.part_time, label: "Part-time" },
+  { value: JobType.contract, label: "Contract" },
+  { value: JobType.remote, label: "Remote" },
+  { value: JobType.internship, label: "Internship" },
+  { value: JobType.freelance, label: "Freelance" },
+];
+
 export default function JobsPage() {
   const search = useSearch({ strict: false }) as {
     q?: string;
@@ -35,6 +46,7 @@ export default function JobsPage() {
   const [keyword, setKeyword] = useState(search.q || "");
   const [location, setLocation] = useState(search.location || "");
   const [category, setCategory] = useState(search.category || "All");
+  const [jobType, setJobType] = useState("All");
 
   const { data: allJobs, isLoading } = useAllJobs();
 
@@ -51,18 +63,25 @@ export default function JobsPage() {
       const matchLoc = !loc || job.location.toLowerCase().includes(loc);
       const matchCat =
         !category || category === "All" || job.category === category;
-      return matchKw && matchLoc && matchCat;
+      const matchType =
+        !jobType || jobType === "All" || job.jobType === jobType;
+      return matchKw && matchLoc && matchCat && matchType;
     });
-  }, [allJobs, keyword, location, category]);
+  }, [allJobs, keyword, location, category, jobType]);
 
   function clearFilters() {
     setKeyword("");
     setLocation("");
     setCategory("All");
+    setJobType("All");
     navigate({ to: "/jobs" });
   }
 
-  const hasFilters = keyword || location || (category && category !== "All");
+  const hasFilters =
+    keyword ||
+    location ||
+    (category && category !== "All") ||
+    (jobType && jobType !== "All");
 
   return (
     <div className="min-h-screen bg-background">
@@ -78,8 +97,8 @@ export default function JobsPage() {
 
       <div className="container mx-auto px-4 py-8">
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-xs border border-border p-4 mb-8 flex flex-col md:flex-row gap-3">
-          <div className="flex items-center gap-2 flex-1 border border-border rounded-lg px-3 py-2">
+        <div className="bg-white rounded-xl shadow-xs border border-border p-4 mb-8 flex flex-col md:flex-row gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-1 border border-border rounded-lg px-3 py-2 min-w-[160px]">
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <Input
               placeholder="Job title, keyword, or company"
@@ -89,7 +108,7 @@ export default function JobsPage() {
               data-ocid="jobs.search_input"
             />
           </div>
-          <div className="flex items-center gap-2 flex-1 border border-border rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 flex-1 border border-border rounded-lg px-3 py-2 min-w-[140px]">
             <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <Input
               placeholder="Location"
@@ -99,7 +118,7 @@ export default function JobsPage() {
               data-ocid="jobs.location_input"
             />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-[140px]">
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger data-ocid="jobs.category.select">
                 <div className="flex items-center gap-2">
@@ -111,6 +130,23 @@ export default function JobsPage() {
                 {CATEGORIES.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex-1 min-w-[140px]">
+            <Select value={jobType} onValueChange={setJobType}>
+              <SelectTrigger data-ocid="jobs.job_type.select">
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-muted-foreground" />
+                  <SelectValue placeholder="Job Type" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {JOB_TYPES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
                   </SelectItem>
                 ))}
               </SelectContent>

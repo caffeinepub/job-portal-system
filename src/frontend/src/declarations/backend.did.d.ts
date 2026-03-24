@@ -34,6 +34,7 @@ export interface JobListing {
   'postedAt' : Time,
   'postedBy' : Principal,
   'salary' : string,
+  'jobType' : JobType,
   'description' : string,
   'company' : string,
   'category' : string,
@@ -45,6 +46,12 @@ export interface JobSeekerProfile {
   'experience' : Array<string>,
   'skills' : Array<string>,
 }
+export type JobType = { 'remote' : null } |
+  { 'internship' : null } |
+  { 'contract' : null } |
+  { 'freelance' : null } |
+  { 'part_time' : null } |
+  { 'full_time' : null };
 export type Time = bigint;
 export interface UserProfile {
   'employerProfile' : [] | [EmployerProfile],
@@ -80,12 +87,13 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getJobsByCategory' : ActorMethod<[string], Array<JobListing>>,
   'getJobsByCompany' : ActorMethod<[string], Array<JobListing>>,
+  'getJobsByJobType' : ActorMethod<[JobType], Array<JobListing>>,
   'getJobsByLocation' : ActorMethod<[string], Array<JobListing>>,
   'getJobsByTitle' : ActorMethod<[string], Array<JobListing>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'postJob' : ActorMethod<
-    [string, string, string, string, string, string],
+    [string, string, string, string, string, string, JobType],
     bigint
   >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
@@ -94,7 +102,7 @@ export interface _SERVICE {
     undefined
   >,
   'updateJob' : ActorMethod<
-    [bigint, string, string, string, string, string, string],
+    [bigint, string, string, string, string, string, string, JobType],
     undefined
   >,
 }

@@ -18,7 +18,11 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { login, loginStatus, identity, isInitializing } =
     useInternetIdentity();
-  const { data: profile, isLoading: profileLoading } = useCallerProfile();
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError: profileError,
+  } = useCallerProfile();
   const [selectedRole, setSelectedRole] = useState<
     "seeker" | "employer" | null
   >(null);
@@ -27,14 +31,15 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!isLoggedIn || profileLoading) return;
-    if (profile === null) {
+    if (profile === null || profileError) {
       navigate({ to: "/profile-setup" });
     } else if (profile?.role === UserRole.employer) {
       navigate({ to: "/dashboard/employer" });
-    } else {
+    } else if (profile?.role === UserRole.job_seeker) {
       navigate({ to: "/dashboard/seeker" });
     }
-  }, [isLoggedIn, profile, profileLoading, navigate]);
+    // If profile is undefined and no error, wait for it to load
+  }, [isLoggedIn, profile, profileLoading, profileError, navigate]);
 
   if (isInitializing || (isLoggedIn && profileLoading)) {
     return (

@@ -28,10 +28,16 @@ export interface JobListing {
     postedAt: Time;
     postedBy: Principal;
     salary: string;
+    jobType: JobType;
     description: string;
     company: string;
     category: string;
     location: string;
+}
+export interface UserProfile {
+    employerProfile?: EmployerProfile;
+    role: UserRole;
+    jobSeekerProfile?: JobSeekerProfile;
 }
 export interface EmployerProfile {
     bio: string;
@@ -39,16 +45,19 @@ export interface EmployerProfile {
     company: string;
     industry: string;
 }
-export interface UserProfile {
-    employerProfile?: EmployerProfile;
-    role: UserRole;
-    jobSeekerProfile?: JobSeekerProfile;
-}
 export enum ApplicationStatus {
     pending = "pending",
     rejected = "rejected",
     reviewed = "reviewed",
     accepted = "accepted"
+}
+export enum JobType {
+    remote = "remote",
+    internship = "internship",
+    contract = "contract",
+    freelance = "freelance",
+    part_time = "part_time",
+    full_time = "full_time"
 }
 export enum UserRole {
     employer = "employer",
@@ -73,12 +82,13 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole__1>;
     getJobsByCategory(category: string): Promise<Array<JobListing>>;
     getJobsByCompany(company: string): Promise<Array<JobListing>>;
+    getJobsByJobType(jobType: JobType): Promise<Array<JobListing>>;
     getJobsByLocation(location: string): Promise<Array<JobListing>>;
     getJobsByTitle(title: string): Promise<Array<JobListing>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    postJob(title: string, company: string, location: string, description: string, salary: string, category: string): Promise<bigint>;
+    postJob(title: string, company: string, location: string, description: string, salary: string, category: string, jobType: JobType): Promise<bigint>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     updateApplicationStatus(applicationId: bigint, status: ApplicationStatus): Promise<void>;
-    updateJob(jobId: bigint, title: string, company: string, location: string, description: string, salary: string, category: string): Promise<void>;
+    updateJob(jobId: bigint, title: string, company: string, location: string, description: string, salary: string, category: string, jobType: JobType): Promise<void>;
 }

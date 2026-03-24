@@ -14,12 +14,21 @@ export const UserRole__1 = IDL.Variant({
   'guest' : IDL.Null,
 });
 export const Time = IDL.Int;
+export const JobType = IDL.Variant({
+  'remote' : IDL.Null,
+  'internship' : IDL.Null,
+  'contract' : IDL.Null,
+  'freelance' : IDL.Null,
+  'part_time' : IDL.Null,
+  'full_time' : IDL.Null,
+});
 export const JobListing = IDL.Record({
   'id' : IDL.Nat,
   'title' : IDL.Text,
   'postedAt' : Time,
   'postedBy' : IDL.Principal,
   'salary' : IDL.Text,
+  'jobType' : JobType,
   'description' : IDL.Text,
   'company' : IDL.Text,
   'category' : IDL.Text,
@@ -92,6 +101,7 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getJobsByCategory' : IDL.Func([IDL.Text], [IDL.Vec(JobListing)], ['query']),
   'getJobsByCompany' : IDL.Func([IDL.Text], [IDL.Vec(JobListing)], ['query']),
+  'getJobsByJobType' : IDL.Func([JobType], [IDL.Vec(JobListing)], ['query']),
   'getJobsByLocation' : IDL.Func([IDL.Text], [IDL.Vec(JobListing)], ['query']),
   'getJobsByTitle' : IDL.Func([IDL.Text], [IDL.Vec(JobListing)], ['query']),
   'getUserProfile' : IDL.Func(
@@ -101,14 +111,23 @@ export const idlService = IDL.Service({
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'postJob' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, JobType],
       [IDL.Nat],
       [],
     ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'updateApplicationStatus' : IDL.Func([IDL.Nat, ApplicationStatus], [], []),
   'updateJob' : IDL.Func(
-      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        JobType,
+      ],
       [],
       [],
     ),
@@ -123,12 +142,21 @@ export const idlFactory = ({ IDL }) => {
     'guest' : IDL.Null,
   });
   const Time = IDL.Int;
+  const JobType = IDL.Variant({
+    'remote' : IDL.Null,
+    'internship' : IDL.Null,
+    'contract' : IDL.Null,
+    'freelance' : IDL.Null,
+    'part_time' : IDL.Null,
+    'full_time' : IDL.Null,
+  });
   const JobListing = IDL.Record({
     'id' : IDL.Nat,
     'title' : IDL.Text,
     'postedAt' : Time,
     'postedBy' : IDL.Principal,
     'salary' : IDL.Text,
+    'jobType' : JobType,
     'description' : IDL.Text,
     'company' : IDL.Text,
     'category' : IDL.Text,
@@ -209,6 +237,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getJobsByCompany' : IDL.Func([IDL.Text], [IDL.Vec(JobListing)], ['query']),
+    'getJobsByJobType' : IDL.Func([JobType], [IDL.Vec(JobListing)], ['query']),
     'getJobsByLocation' : IDL.Func(
         [IDL.Text],
         [IDL.Vec(JobListing)],
@@ -222,14 +251,23 @@ export const idlFactory = ({ IDL }) => {
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'postJob' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, JobType],
         [IDL.Nat],
         [],
       ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'updateApplicationStatus' : IDL.Func([IDL.Nat, ApplicationStatus], [], []),
     'updateJob' : IDL.Func(
-        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          JobType,
+        ],
         [],
         [],
       ),

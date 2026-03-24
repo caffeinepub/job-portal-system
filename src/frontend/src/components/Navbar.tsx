@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Briefcase, ChevronDown, Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { UserRole } from "../backend.d";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
@@ -38,31 +39,59 @@ export default function Navbar() {
   }
 
   return (
-    <header className="bg-navy text-white sticky top-0 z-50 shadow-md">
+    <header
+      className="sticky top-0 z-50"
+      style={{
+        background: "oklch(0.12 0.045 264 / 0.85)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 1px 24px 0 rgba(0,0,0,0.25)",
+      }}
+    >
+      {/* Gradient border bottom line */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[1px]"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, oklch(0.64 0.19 221 / 0.6), oklch(0.55 0.22 264 / 0.6), transparent)",
+        }}
+      />
+
       <div className="container mx-auto flex items-center justify-between h-16 px-4 md:px-6">
         {/* Logo */}
         <Link
           to="/"
-          className="flex items-center gap-2 font-bold text-xl text-white"
+          className="flex items-center gap-2.5 font-extrabold text-xl text-white group"
         >
-          <Briefcase className="w-6 h-6 text-blue-300" />
-          CareerHub
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{
+              background:
+                "linear-gradient(135deg, oklch(0.64 0.19 221), oklch(0.55 0.22 264))",
+            }}
+          >
+            <Briefcase className="w-4 h-4 text-white" />
+          </div>
+          <span className="tracking-tight">
+            Career<span className="text-gradient-blue">Hub</span>
+          </span>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+        <nav className="hidden md:flex items-center gap-1 text-sm font-medium">
           <Link
             to="/jobs"
-            className="hover:text-blue-300 transition-colors"
+            className="px-3 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/8 transition-all"
             data-ocid="nav.jobs.link"
           >
             Find Jobs
           </Link>
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1 hover:text-blue-300 transition-colors">
+            <DropdownMenuTrigger className="flex items-center gap-1 px-3 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/8 transition-all">
               Employers <ChevronDown className="w-3.5 h-3.5" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white text-foreground">
+            <DropdownMenuContent className="bg-card text-foreground border-border">
               <DropdownMenuItem asChild>
                 <Link to="/auth">Post a Job</Link>
               </DropdownMenuItem>
@@ -71,22 +100,22 @@ export default function Navbar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <span className="hover:text-blue-300 transition-colors cursor-pointer">
+          <span className="px-3 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/8 transition-all cursor-pointer">
             Pricing
           </span>
-          <span className="hover:text-blue-300 transition-colors cursor-pointer">
+          <span className="px-3 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/8 transition-all cursor-pointer">
             Resources
           </span>
         </nav>
 
         {/* Desktop actions */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           {isLoggedIn ? (
             <>
               <Button
                 type="button"
                 variant="ghost"
-                className="text-white hover:text-white hover:bg-white/10"
+                className="text-white/80 hover:text-white hover:bg-white/10"
                 onClick={handleDashboard}
                 data-ocid="nav.dashboard.button"
               >
@@ -94,8 +123,7 @@ export default function Navbar() {
               </Button>
               <Button
                 type="button"
-                variant="outline"
-                className="border-white/30 text-white bg-transparent hover:bg-white/10"
+                className="text-white border border-white/20 bg-white/8 hover:bg-white/15 transition-all"
                 onClick={handleLogout}
                 data-ocid="nav.logout.button"
               >
@@ -107,14 +135,19 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={handleLogin}
-                className="text-white/80 hover:text-white text-sm transition-colors"
+                className="text-white/70 hover:text-white text-sm px-3 py-2 transition-colors"
                 data-ocid="nav.login.link"
               >
                 Login
               </button>
               <Button
                 asChild
-                className="bg-blue-accent hover:bg-blue-accent/90 text-white"
+                className="font-semibold text-white"
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.64 0.19 221), oklch(0.55 0.22 264))",
+                  boxShadow: "0 0 16px 0 rgba(14,165,233,0.30)",
+                }}
                 data-ocid="nav.post_job.button"
               >
                 <Link to="/auth">Post a Job</Link>
@@ -126,72 +159,83 @@ export default function Navbar() {
         {/* Mobile menu toggle */}
         <button
           type="button"
-          className="md:hidden text-white"
+          className="md:hidden text-white p-2"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
           {mobileOpen ? (
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           ) : (
-            <Menu className="w-6 h-6" />
+            <Menu className="w-5 h-5" />
           )}
         </button>
       </div>
 
       {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="md:hidden bg-navy border-t border-white/10 px-4 pb-4 flex flex-col gap-3">
-          <Link
-            to="/jobs"
-            className="text-white/80 hover:text-white py-2"
-            onClick={() => setMobileOpen(false)}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: "easeInOut" }}
+            className="md:hidden overflow-hidden"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
           >
-            Find Jobs
-          </Link>
-          <Link
-            to="/auth"
-            className="text-white/80 hover:text-white py-2"
-            onClick={() => setMobileOpen(false)}
-          >
-            Post a Job
-          </Link>
-          {isLoggedIn ? (
-            <>
-              <button
-                type="button"
-                onClick={() => {
-                  handleDashboard();
-                  setMobileOpen(false);
-                }}
-                className="text-white/80 hover:text-white py-2 text-left"
+            <div className="px-4 py-3 flex flex-col gap-1">
+              <Link
+                to="/jobs"
+                className="text-white/80 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/8 transition-all"
+                onClick={() => setMobileOpen(false)}
               >
-                Dashboard
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  handleLogout();
-                  setMobileOpen(false);
-                }}
-                className="text-white/80 hover:text-white py-2 text-left"
+                Find Jobs
+              </Link>
+              <Link
+                to="/auth"
+                className="text-white/80 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/8 transition-all"
+                onClick={() => setMobileOpen(false)}
               >
-                Logout
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                handleLogin();
-                setMobileOpen(false);
-              }}
-              className="text-white/80 hover:text-white py-2 text-left"
-            >
-              Login
-            </button>
-          )}
-        </div>
-      )}
+                Post a Job
+              </Link>
+              {isLoggedIn ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleDashboard();
+                      setMobileOpen(false);
+                    }}
+                    className="text-white/80 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/8 transition-all text-left"
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleLogout();
+                      setMobileOpen(false);
+                    }}
+                    className="text-white/80 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/8 transition-all text-left"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleLogin();
+                    setMobileOpen(false);
+                  }}
+                  className="text-white/80 hover:text-white px-3 py-2.5 rounded-lg hover:bg-white/8 transition-all text-left"
+                >
+                  Login
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

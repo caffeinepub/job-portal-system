@@ -18,6 +18,7 @@ import {
   Briefcase,
   Building2,
   Calendar,
+  Clock,
   DollarSign,
   Loader2,
   MapPin,
@@ -26,8 +27,18 @@ import {
 import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import type { JobType } from "../backend.d";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useAllJobs, useApplyToJob } from "../hooks/useQueries";
+
+const JOB_TYPE_LABELS: Record<JobType, string> = {
+  full_time: "Full-time",
+  part_time: "Part-time",
+  contract: "Contract",
+  remote: "Remote",
+  internship: "Internship",
+  freelance: "Freelance",
+};
 
 export default function JobDetailPage() {
   const { jobId } = useParams({ strict: false }) as { jobId: string };
@@ -166,6 +177,15 @@ export default function JobDetailPage() {
                   <span className="text-muted-foreground">Category:</span>
                   <Badge variant="secondary">{job.category}</Badge>
                 </div>
+                {job.jobType && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Job Type:</span>
+                    <Badge variant="outline">
+                      {JOB_TYPE_LABELS[job.jobType] ?? job.jobType}
+                    </Badge>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Posted:</span>

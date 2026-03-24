@@ -46,7 +46,7 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { ApplicationStatus, type JobListing } from "../backend.d";
+import { ApplicationStatus, type JobListing, JobType } from "../backend.d";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useAllJobs,
@@ -66,6 +66,24 @@ const CATEGORIES = [
   "Sales",
   "Engineering",
 ];
+
+const JOB_TYPES: { value: JobType; label: string }[] = [
+  { value: JobType.full_time, label: "Full-time" },
+  { value: JobType.part_time, label: "Part-time" },
+  { value: JobType.contract, label: "Contract" },
+  { value: JobType.remote, label: "Remote" },
+  { value: JobType.internship, label: "Internship" },
+  { value: JobType.freelance, label: "Freelance" },
+];
+
+const JOB_TYPE_LABELS: Record<JobType, string> = {
+  full_time: "Full-time",
+  part_time: "Part-time",
+  contract: "Contract",
+  remote: "Remote",
+  internship: "Internship",
+  freelance: "Freelance",
+};
 
 const STATUS_OPTS = [
   { value: ApplicationStatus.pending, label: "Pending" },
@@ -88,6 +106,7 @@ type JobFormData = {
   description: string;
   salary: string;
   category: string;
+  jobType: JobType | "";
 };
 
 const EMPTY_FORM: JobFormData = {
@@ -97,6 +116,7 @@ const EMPTY_FORM: JobFormData = {
   description: "",
   salary: "",
   category: "",
+  jobType: "",
 };
 
 function JobApplicants({ jobId }: { jobId: bigint }) {
@@ -214,6 +234,7 @@ export default function EmployerDashboard() {
       description: job.description,
       salary: job.salary,
       category: job.category,
+      jobType: job.jobType,
     });
     setShowForm(true);
   }
@@ -225,17 +246,35 @@ export default function EmployerDashboard() {
       !form.location ||
       !form.description ||
       !form.salary ||
-      !form.category
+      !form.category ||
+      !form.jobType
     ) {
       toast.error("Please fill all fields");
       return;
     }
     try {
       if (editingJob) {
-        await updateJob.mutateAsync({ jobId: editingJob.id, ...form });
+        await updateJob.mutateAsync({
+          jobId: editingJob.id,
+          title: form.title,
+          company: form.company,
+          location: form.location,
+          description: form.description,
+          salary: form.salary,
+          category: form.category,
+          jobType: form.jobType as JobType,
+        });
         toast.success("Job updated!");
       } else {
-        await postJob.mutateAsync(form);
+        await postJob.mutateAsync({
+          title: form.title,
+          company: form.company,
+          location: form.location,
+          description: form.description,
+          salary: form.salary,
+          category: form.category,
+          jobType: form.jobType as JobType,
+        });
         toast.success("Job posted!");
       }
       setShowForm(false);
@@ -366,6 +405,11 @@ export default function EmployerDashboard() {
                           <Badge variant="secondary" className="text-xs">
                             {job.category}
                           </Badge>
+                          {job.jobType && (
+                            <Badge variant="outline" className="text-xs">
+                              {JOB_TYPE_LABELS[job.jobType] ?? job.jobType}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -380,8 +424,7 @@ export default function EmployerDashboard() {
                           }
                           data-ocid={`employer_dashboard.view_applicants.button.${i + 1}`}
                         >
-                          <Users className="w-4 h-4 mr-1" />
-                          Applicants
+                          <Users className="w-4 h-4" />
                         </Button>
                         <Button
                           type="button"
@@ -404,14 +447,12 @@ export default function EmployerDashboard() {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent data-ocid="employer_dashboard.delete_confirm.dialog">
                             <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Delete Job Listing
-                              </AlertDialogTitle>
+                              <AlertDialogTitle>Delete Job?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "{job.title}"?
-                                This action cannot be undone.
+                                This will permanently remove the job listing and
+                                all associated applications.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -522,26 +563,51 @@ export default function EmployerDashboard() {
                 />
               </div>
             </div>
-            <div>
-              <Label>Category *</Label>
-              <Select
-                value={form.category}
-                onValueChange={(v) => setForm({ ...form, category: v })}
-              >
-                <SelectTrigger
-                  className="mt-1"
-                  data-ocid="employer_dashboard.category.select"
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Category *</Label>
+                <Select
+                  value={form.category}
+                  onValueChange={(v) => setForm({ ...form, category: v })}
                 >
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <SelectTrigger
+                    className="mt-1"
+                    data-ocid="employer_dashboard.category.select"
+                  >
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Job Type *</Label>
+                <Select
+                  value={form.jobType}
+                  onValueChange={(v) =>
+                    setForm({ ...form, jobType: v as JobType })
+                  }
+                >
+                  <SelectTrigger
+                    className="mt-1"
+                    data-ocid="employer_dashboard.job_type.select"
+                  >
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {JOB_TYPES.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div>
               <Label>Description *</Label>

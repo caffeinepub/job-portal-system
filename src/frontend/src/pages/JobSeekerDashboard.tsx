@@ -15,13 +15,22 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect } from "react";
-import { ApplicationStatus } from "../backend.d";
+import { ApplicationStatus, type JobType } from "../backend.d";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useAllJobs,
   useApplicationsByApplicant,
   useCallerProfile,
 } from "../hooks/useQueries";
+
+const JOB_TYPE_LABELS: Record<JobType, string> = {
+  full_time: "Full-time",
+  part_time: "Part-time",
+  contract: "Contract",
+  remote: "Remote",
+  internship: "Internship",
+  freelance: "Freelance",
+};
 
 const STATUS_CONFIG = {
   [ApplicationStatus.pending]: {
@@ -198,14 +207,24 @@ export default function JobSeekerDashboard() {
                           {job?.title || "Unknown Job"}
                         </p>
                         <div className="flex flex-wrap gap-2 mt-1 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
-                            {job?.location}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <DollarSign className="w-3 h-3" />
-                            {job?.salary}
-                          </span>
+                          {job?.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {job.location}
+                            </span>
+                          )}
+                          {job?.salary && (
+                            <span className="flex items-center gap-1">
+                              <DollarSign className="w-3 h-3" />
+                              {job.salary}
+                            </span>
+                          )}
+                          {job?.jobType && (
+                            <span className="flex items-center gap-1 font-medium text-foreground/70 bg-muted px-1.5 py-0.5 rounded">
+                              <Clock className="w-3 h-3" />
+                              {JOB_TYPE_LABELS[job.jobType] ?? job.jobType}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <Badge

@@ -78,27 +78,35 @@ export default function ProfileSetupPage() {
         toast.error("Please enter your name");
         return;
       }
-      await createSeeker.mutateAsync({
-        name: seekerName,
-        bio: seekerBio,
-        skills,
-        experience: experiences,
-      });
-      toast.success("Profile created!");
-      navigate({ to: "/dashboard/seeker" });
+      try {
+        await createSeeker.mutateAsync({
+          name: seekerName,
+          bio: seekerBio,
+          skills,
+          experience: experiences,
+        });
+        toast.success("Profile created!");
+        navigate({ to: "/dashboard/seeker" });
+      } catch {
+        toast.error("Failed to create profile. Please try again.");
+      }
     } else {
       if (!empName.trim() || !company.trim() || !industry) {
         toast.error("Please fill all required fields");
         return;
       }
-      await createEmployer.mutateAsync({
-        name: empName,
-        bio: empBio,
-        company,
-        industry,
-      });
-      toast.success("Employer profile created!");
-      navigate({ to: "/dashboard/employer" });
+      try {
+        await createEmployer.mutateAsync({
+          name: empName,
+          bio: empBio,
+          company,
+          industry,
+        });
+        toast.success("Employer profile created!");
+        navigate({ to: "/dashboard/employer" });
+      } catch {
+        toast.error("Failed to create profile. Please try again.");
+      }
     }
   }
 
